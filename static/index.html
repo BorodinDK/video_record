@@ -85,11 +85,12 @@ function xhr(url, data, callback) {
     request.onreadystatechange = function() {
         if (request.readyState == 4 && request.status == 200) {
             callback(JSON.parse(request.responseText));
+            console.log('done merge');
         }
     };
 
     request.upload.onprogress = function(event) {
-	progress.value = Math.round(event.loaded / event.total * 100);
+        progress.value = Math.round(event.loaded / event.total * 100);
     };
 
     request.upload.onload = function() {
