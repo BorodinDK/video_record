@@ -17,6 +17,7 @@ app.post('/upload', function (req, res) {
         files += postDataChunk;
     });
     req.addListener('end', function() {
+        console.log('done uploading');
         files = JSON.parse(files);
 
         var fileName = Math.random().toString(16).split('.')[1];
@@ -25,9 +26,10 @@ app.post('/upload', function (req, res) {
     	var audiofile = upload(files.audio, fileName);
 
     	exec('ffmpeg -itsoffset -00:00:00 -i '+audiofile+' -itsoffset -00:00:00 -i '+videofile+' '+__dirname +'/upload/'+fileName+'.webm', function(){;  
-    		res.send(JSON.stringify({name:fileName}));
+            console.log('done merge');
+            res.send(JSON.stringify({name:fileName}));
     	}, function(){
-    		console.log('err');
+            console.log('err');
     	});
     });
 });
