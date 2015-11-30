@@ -5,7 +5,7 @@ var app = express();
 
 app.use('/', express.static(__dirname + '/static'));
 app.get('/video/:name', function (req, res, next) {
-	res.sendFile(__dirname +'/upload/'+req.params.name+'.webm')
+	res.sendFile(__dirname +'\\upload\\'+req.params.name+'.webm')
 });
 
 app.post('/upload', function (req, res) {
@@ -24,7 +24,7 @@ app.post('/upload', function (req, res) {
     	var videofile = upload(files.video, fileName);
     	var audiofile = upload(files.audio, fileName);
 
-    	exec('ffmpeg -itsoffset -00:00:00 -i '+audiofile+' -itsoffset -00:00:00 -i '+videofile+' '+__dirname +'/upload/'+fileName+'.webm', function(){;  
+    	exec('ffmpeg -itsoffset -00:00:00 -i '+audiofile+' -itsoffset -00:00:00 -i '+videofile+' '+__dirname +'\\upload\\'+fileName+'.webm', function(){;  
     		res.send(JSON.stringify({name:fileName}));
     	}, function(){
     		console.log('err');
@@ -32,7 +32,8 @@ app.post('/upload', function (req, res) {
     });
 });
 
-var server = app.listen(1337, function () {
+var server = app.listen(8080
+, function () {
 	var host = server.address().address;
 	var port = server.address().port;
 
@@ -41,7 +42,7 @@ var server = app.listen(1337, function () {
 
 function upload(file, fileName) {
     var fileBuffer = new Buffer(file.contents, "base64");
-    var name = __dirname + '/upload/_'+fileName+'.'+file.type.split('/')[1];
+    var name = __dirname + '\\upload\\_'+fileName+'.'+file.type.split('/')[1];
     fs.writeFileSync(name, fileBuffer);
     return name;
 }
