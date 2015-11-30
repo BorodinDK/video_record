@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <script src="https://www.webrtc-experiment.com/RecordRTC.js"></script>
+</head>
+<body>
+<video id="video" autoplay loop></video>
+<br>
+<input type="text" id="path">
+<br>
+<button id="start" disabled>Start</button>
+<button id="stop" disabled>Stop</button>
+<script>
+navigator.getUserMedia = navigator.getUserMedia || navigator.mozGetUserMedia || navigator.webkitGetUserMedia;
+
+var startBtn = document.getElementById('start');
+var stopBtn = document.getElementById('stop');
+var videoElem = document.getElementById('video');
+var path = document.getElementById('path');
+
+var videoRecorder;
+var audioRecorder;
+
+startBtn.onclick = function(){
+    stopBtn.disabled = false;
+    startBtn.disabled = true;
+
+    audioRecorder.startRecording();
+};
+
+stopBtn.onclick = function(){
+    stopBtn.disabled = true;
+
+    audioRecorder.stopRecording(function() {
+        videoRecorder.stopRecording(function() {
+            audioRecorder.getDataURL(function(audioDataURL) {
+                var audioFile = {
+                    blob: audioRecorder.getBlob(),
+                    dataURL: audioDataURL
+                };
+
+                videoRecorder.getDataURL(function (videoDataURL) {
+                    var videoFile = {
+                        blob: videoRecorder.getBlob(),
+                        dataURL: videoDataURL
+                    };
+
+                    postFiles(audioFile, videoFile);
+                });
+            });
+        });
+    });
+};
+
+function postFiles(audio, video) {
+    videoElem.src = '';
+
+    var files = {
+        audio:{
+            type: audio.blob.type,
+            contents: audio.dataURL.split(',').pop()
+        },
+        video:{
+             type: video.blob.type,
+            contents: video.dataURL.split(',').pop()
+        }
+    };
+
+    xhr('/upload', JSON.stringify(files), function(data) {
+        videoElem.src = 'video/' + data.name;
+        path.value = 'upload/' + data.name + '.webm';
+    });
+    console.log(files);
+}
+
+
+function xhr(url, data, callback) {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+        if (request.readyState == 4 && request.status == 200) {
+            callback(JSON.parse(request.responseText));
+        }
+    };
+
+    request.upload.onprogress = function(event) {
+        console.log('Upload Progress ' + Math.round(event.loaded / event.total * 100) + "%");
+    };
+
+    request.upload.onload = function() {
+
+    };
+    request.open('POST', url);
+    request.setRequestHeader('Content-Type', 'application/json');
+    request.send(data);
+}
+
+navigator.getUserMedia({
+    audio: true,
+    video: true
+}, function(stream){
+    startBtn.disabled = false;
+    videoElem.src = URL.createObjectURL(stream);
+
+    var audioConfig = {
+        onAudioProcessStarted: function(){
+            videoRecorder.startRecording();
+        }
+    };
+
+    var videoConfig = {
+        type: 'video',
+        canvas: {
+            width: 640,
+            height: 480
+        }
+    };
+    console.log(videoConfig);
+
+    videoRecorder = RecordRTC(stream, videoConfig);
+    audioRecorder = RecordRTC(stream, audioConfig);
+
+}, console.error);
+
+
+</script>
+</body>
+</html>
